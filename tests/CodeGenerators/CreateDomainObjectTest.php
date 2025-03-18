@@ -24,10 +24,8 @@ class CreateDomainObjectTest extends TestCase
             ]
         ]);
     }
-    /**
-     * @test
-     * @dataProvider provideDomainObjectDtos
-     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('provideDomainObjectDtos')]
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_generate_code_for_a_domain_object(string $fixtureFile, DomainObjectDto $input)
     {
         $testItem = $this->given_a_domain_object_generator();
@@ -40,10 +38,8 @@ class CreateDomainObjectTest extends TestCase
         );
     }
 
-    /**
-     * @test
-     * @dataProvider provideDomainObjectDtos
-     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('provideDomainObjectDtos')]
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_generate_code_for_a_domain_object_identifier(string $fixtureFile, DomainObjectDto $input)
     {
         $testItem = $this->given_a_domain_object_generator();
@@ -63,7 +59,7 @@ class CreateDomainObjectTest extends TestCase
             new DomainObjectDto(
                 new PascalCaseSlug('Example'),
                 new BoundedContextId('example'),
-                IdType::Slug,
+                IdType::Identifier,
                 false
             )
         ];

@@ -59,7 +59,7 @@ class CreateDomainObject
         }
 
         $code = Utils::addOrGetNamespace($file, $idNamespace);
-        Utils::addUseStatements($code, IdentifierInterface::class, $domainObjectDto->idType->value, ReflectionClass::class);
+        Utils::addUseStatements($code, IdentifierInterface::class, $resourceNamespace . $domainObjectDto->name, $domainObjectDto->idType->value, ReflectionClass::class);
         $classType = $code->getClasses()[$domainObjectDto->name . 'Identifier'] ?? $code->addClass($domainObjectDto->name . 'Identifier');
         $classType->setExtends($domainObjectDto->idType->value);
         if (!in_array(IdentifierInterface::class, $classType->getImplements())) {
@@ -94,17 +94,22 @@ class CreateDomainObject
             $classType->addImplement(EntityInterface::class);
         }
         $shouldInitConstructor = !$classType->hasMethod('__construct') && $domainObjectDto->idType === IdType::Integer;
-        $idProperty = Utils::searchOrAddProperty($classType, 'id', $domainObjectDto->idType === IdType::Integer);
+        $idProperty = Utils::searchOrAddProperty(
+            $classType,
+            'id',
+            $domainObjectDto->idType === IdType::Integer || $domainObjectDto->idType === IdType::Uuid,
+            $domainObjectDto->idType === IdType::Uuid
+        );
         $idClass = $idNamespace . $domainObjectDto->name . 'Identifier';
         Utils::addUseStatements($code, $idClass);
         $idProperty->setType($idClass);
         if ($shouldInitConstructor && !$idProperty instanceof PromotedParameter) {
             // constructor is created in Utils::searchOrAddProperty....
             $classType->getMethod('__construct')
-                ->addBody('$this->id = new ' . $domainObjectDto->name . 'Identifier(null);');
+                ->addBody('$this->id = $id ?? new ' . $domainObjectDto->name . 'Identifier(null);');
         }
         if (!$classType->hasMethod('getId')) {
-            $classType->addMethod('getId')->setBody('return $id;')->setReturnType($idClass);
+            $classType->addMethod('getId')->setBody('return $this->id;')->setReturnType($idClass);
         }
         $printer = new PsrPrinter();
         return $printer->printFile($file);
